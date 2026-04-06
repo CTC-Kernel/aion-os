@@ -81,9 +81,5 @@ fn main() {
 }
 
 fn format_op(op: &Op) -> String {
-    match op {
-        Op::Not(i) => format!("NOT R{i}"),
-        Op::Cnot { control, target } => format!("CNOT R{control}→R{target}"),
-        Op::Toffoli { c1, c2, target } => format!("TOFF R{c1},R{c2}→R{target}"),
-    }
+    op.to_string()
 }
