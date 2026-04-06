@@ -10,6 +10,7 @@
 
 pub mod backend;
 pub mod bitplane;
+pub mod builder;
 pub mod cell;
 pub mod engine;
 pub mod error;
@@ -19,8 +20,9 @@ pub mod runtime;
 pub mod state;
 pub mod traits;
 
-pub use backend::{ExecutionBackend, SimulatedCpu};
+pub use backend::{ExecutionBackend, RecordingBackend, SimulatedCpu};
 pub use bitplane::BitPlane;
+pub use builder::ProgramBuilder;
 pub use cell::QuantumCell;
 pub use engine::{ExecutionEngine, Op, ReversibleProgram};
 pub use error::RewindError;

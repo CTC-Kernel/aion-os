@@ -51,6 +51,7 @@ pub use rewind_gates::*;
 /// ```
 pub mod prelude {
     pub use rewind_core::bitplane::BitPlane;
+    pub use rewind_core::builder::ProgramBuilder;
     pub use rewind_core::cell::QuantumCell;
     pub use rewind_core::engine::{ExecutionEngine, Op, ReversibleProgram};
     pub use rewind_core::error::RewindError;
@@ -58,5 +59,7 @@ pub mod prelude {
     pub use rewind_core::state::{AncillaId, CheckpointId, RegisterId};
     pub use rewind_core::traits::{ReversibleOp, assert_reversible, check_reversible};
     pub use rewind_dsl::reversible;
-    pub use rewind_gates::scalar::{Cnot, CnotState, PauliX, Toffoli, ToffoliState};
+    pub use rewind_gates::scalar::{
+        Cnot, CnotState, Fredkin, FredkinState, PauliX, Toffoli, ToffoliState,
+    };
 }

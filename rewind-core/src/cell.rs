@@ -91,6 +91,46 @@ impl<T> QuantumCell<T> {
     }
 }
 
+/// Apply a function to the inner value in-place, without consuming the cell.
+///
+/// This is the core building block for reversible operations on QuantumCell.
+impl<T> QuantumCell<T> {
+    /// Maps a function over the inner value in-place.
+    ///
+    /// ```
+    /// use rewind_core::QuantumCell;
+    /// let mut cell = QuantumCell::new(10u64);
+    /// cell.map_in_place(|v| *v += 5);
+    /// assert_eq!(cell.consume(), 15);
+    /// ```
+    pub fn map_in_place<F: FnOnce(&mut T)>(&mut self, f: F) {
+        f(&mut self.value);
+    }
+}
+
+// Reversible operator implementations for QuantumCell<T>
+
+impl<T: std::ops::AddAssign<U>, U> std::ops::AddAssign<U> for QuantumCell<T> {
+    /// Reversible addition: `cell += value`. Inverse: `cell -= value`.
+    fn add_assign(&mut self, rhs: U) {
+        *self.get_mut() += rhs;
+    }
+}
+
+impl<T: std::ops::SubAssign<U>, U> std::ops::SubAssign<U> for QuantumCell<T> {
+    /// Reversible subtraction: `cell -= value`. Inverse: `cell += value`.
+    fn sub_assign(&mut self, rhs: U) {
+        *self.get_mut() -= rhs;
+    }
+}
+
+impl<T: std::ops::BitXorAssign<U>, U> std::ops::BitXorAssign<U> for QuantumCell<T> {
+    /// Reversible XOR: `cell ^= value`. Self-inverse.
+    fn bitxor_assign(&mut self, rhs: U) {
+        *self.get_mut() ^= rhs;
+    }
+}
+
 impl<T> Drop for QuantumCell<T> {
     fn drop(&mut self) {
         if !self.consumed {

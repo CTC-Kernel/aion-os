@@ -142,6 +142,62 @@ impl std::fmt::Display for BitPlane {
     }
 }
 
+// Convenient conversions
+
+impl From<u64> for BitPlane {
+    /// Creates a single-word BitPlane from a u64.
+    fn from(value: u64) -> Self {
+        Self::from_words(vec![value])
+    }
+}
+
+impl From<Vec<u64>> for BitPlane {
+    /// Creates a BitPlane from a vector of u64 words.
+    fn from(words: Vec<u64>) -> Self {
+        Self::from_words(words)
+    }
+}
+
+impl From<&[u64]> for BitPlane {
+    /// Creates a BitPlane from a slice of u64 words.
+    fn from(words: &[u64]) -> Self {
+        Self::from_words(words.to_vec())
+    }
+}
+
+// Standard trait implementations
+
+impl std::ops::BitXorAssign<&BitPlane> for BitPlane {
+    /// In-place XOR: `self ^= other`. Alias for `xor_assign`.
+    fn bitxor_assign(&mut self, rhs: &BitPlane) {
+        self.xor_assign(rhs);
+    }
+}
+
+impl std::ops::BitXor<&BitPlane> for &BitPlane {
+    type Output = BitPlane;
+    /// XOR: `self ^ other`. Alias for `xor`.
+    fn bitxor(self, rhs: &BitPlane) -> BitPlane {
+        self.xor(rhs)
+    }
+}
+
+impl std::ops::BitAnd<&BitPlane> for &BitPlane {
+    type Output = BitPlane;
+    /// AND: `self & other`. Alias for `and`.
+    fn bitand(self, rhs: &BitPlane) -> BitPlane {
+        self.and(rhs)
+    }
+}
+
+impl std::ops::Not for &BitPlane {
+    type Output = BitPlane;
+    /// NOT: `!self`. Alias for `not`.
+    fn not(self) -> BitPlane {
+        BitPlane::not(self)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

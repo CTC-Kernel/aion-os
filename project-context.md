@@ -48,8 +48,8 @@ Cargo workspace with 7 crates:
 
 - `mem::forget` can bypass QuantumCell's Drop — mitigated by `#[reversible]` macro rejection
 - SIMD gates not yet implemented (feature flags exist, implementations are placeholders)
-- Bennett executor plans checkpoints but doesn't yet execute full reversible programs automatically
-- `#[reversible]` validates but doesn't generate inverse code yet
+- WASM playground not yet implemented (crate exists as placeholder)
+- `#[reversible]` inverse codegen handles +=/-=/^= but not loops/conditionals yet
 
 ## License
 
