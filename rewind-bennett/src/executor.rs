@@ -84,6 +84,72 @@ impl BennettExecutor {
     }
 }
 
+/// Result of executing a Bennett plan on concrete operations.
+#[derive(Debug)]
+pub struct BennettResult {
+    /// Total forward operations executed.
+    pub forward_ops: usize,
+    /// Total backward (uncompute) operations executed.
+    pub backward_ops: usize,
+    /// Number of checkpoints used.
+    pub checkpoints_used: usize,
+}
+
+impl BennettExecutor {
+    /// Executes a Bennett plan on a sequence of concrete operations.
+    ///
+    /// Takes a list of `Op`s (one per step in the computation graph) and
+    /// a `ReversibleRuntime`, then executes the three-phase Bennett algorithm:
+    /// 1. Forward: execute all operations with checkpointing
+    /// 2. (Result is now available in registers)
+    /// 3. Backward: uncompute intermediate steps to free ancilla
+    ///
+    /// After execution, only the final result remains; all intermediate
+    /// state has been uncomputed (garbage-free).
+    pub fn execute_with_ops(
+        &self,
+        ops: &[rewind_core::engine::Op],
+        runtime: &mut rewind_core::runtime::ReversibleRuntime,
+    ) -> BennettResult {
+        let plan = self.plan(&ComputationGraph::linear_chain(
+            &(0..ops.len())
+                .map(|i| format!("step_{i}"))
+                .collect::<Vec<_>>()
+                .iter()
+                .map(|s| s.as_str())
+                .collect::<Vec<_>>(),
+        ));
+
+        // Phase 1: Forward execution
+        let mut forward_count = 0;
+        for &step_id in &plan.forward_steps {
+            if let Some(op) = ops.get(step_id.0) {
+                runtime.execute_tracked(op.clone());
+                forward_count += 1;
+            }
+        }
+
+        // Phase 2: Result is now in registers
+        // (No explicit copy needed — the result stays in the registers)
+
+        // Phase 3: Backward (uncompute) — skip last step to preserve result
+        let mut backward_count = 0;
+        for &step_id in &plan.backward_steps {
+            if let Some(op) = ops.get(step_id.0) {
+                // Apply the same op again (all gates are self-inverse)
+                runtime.execute_tracked(op.clone());
+                backward_count += 1;
+            }
+        }
+
+        BennettResult {
+            forward_ops: forward_count,
+            backward_ops: backward_count,
+            checkpoints_used: plan.strategy.checkpoint_count(),
+        }
+    }
+}
+
 impl Default for BennettExecutor {
     fn default() -> Self {
         Self::new(BennettConfig::default())

@@ -10,6 +10,6 @@ pub mod executor;
 pub mod graph;
 pub mod pebbling;
 
-pub use executor::{BennettExecutor, BennettPlan};
+pub use executor::{BennettExecutor, BennettPlan, BennettResult};
 pub use graph::{ComputationGraph, StepId};
 pub use pebbling::{BennettConfig, PebblingStrategy};
