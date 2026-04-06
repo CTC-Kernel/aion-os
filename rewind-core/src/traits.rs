@@ -35,7 +35,7 @@
 /// Every implementation **must** satisfy the reversibility property:
 /// `∀ state: undo(execute(state)) == state`
 ///
-/// Use the [`assert_reversible!`] macro or [`check_reversible`] function
+/// Use the [`assert_reversible`] function or [`check_reversible`] function
 /// to verify this property with proptest.
 pub trait ReversibleOp {
     /// The state type this operation transforms.
