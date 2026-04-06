@@ -10,6 +10,7 @@
 //! - `simd` — Enable `std::simd` optimizations (requires nightly)
 //! - `stable-simd` — Enable `pulp`-based SIMD optimizations (stable Rust)
 
+pub mod circuits;
 pub mod scalar;
 
 #[cfg(feature = "simd")]
