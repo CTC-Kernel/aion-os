@@ -7,4 +7,9 @@
 //! initial zero state, preserving information integrity.
 
 pub mod budget;
+pub mod collector;
 pub mod stack;
+
+pub use budget::MemoryBudget;
+pub use collector::GarbageFreeCollector;
+pub use stack::AncillaStack;
