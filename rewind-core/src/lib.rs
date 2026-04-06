@@ -22,6 +22,6 @@ pub use bitplane::BitPlane;
 pub use cell::QuantumCell;
 pub use engine::{ExecutionEngine, Op, ReversibleProgram};
 pub use error::RewindError;
-pub use runtime::ReversibleRuntime;
+pub use runtime::{ReversibleRuntime, RuntimeStats};
 pub use state::{AncillaId, CheckpointId, RegisterId};
 pub use traits::{ReversibleOp, assert_reversible, check_reversible};

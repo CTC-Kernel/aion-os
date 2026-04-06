@@ -112,6 +112,34 @@ impl BitPlane {
     pub fn is_zero(&self) -> bool {
         self.words.iter().all(|&w| w == 0)
     }
+
+    /// Returns the total number of bits (words * 64).
+    pub fn bit_count(&self) -> usize {
+        self.words.len() * 64
+    }
+
+    /// Counts the number of set (1) bits (population count).
+    pub fn popcount(&self) -> u32 {
+        self.words.iter().map(|w| w.count_ones()).sum()
+    }
+}
+
+impl std::fmt::Display for BitPlane {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.words.is_empty() {
+            return write!(f, "[]");
+        }
+        if self.words.len() == 1 {
+            return write!(f, "0x{:016X}", self.words[0]);
+        }
+        write!(
+            f,
+            "[{} words: 0x{:016X}..0x{:016X}]",
+            self.words.len(),
+            self.words[0],
+            self.words[self.words.len() - 1]
+        )
+    }
 }
 
 #[cfg(test)]

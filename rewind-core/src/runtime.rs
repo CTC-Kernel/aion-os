@@ -42,6 +42,31 @@ pub struct ReversibleRuntime {
     engine: ExecutionEngine,
     /// Stack of operations executed (for rewind).
     history: Vec<Op>,
+    /// Total operations executed (forward + backward).
+    total_ops: u64,
+}
+
+/// Runtime statistics for performance monitoring.
+#[derive(Debug, Clone)]
+pub struct RuntimeStats {
+    /// Total operations executed (forward + backward).
+    pub total_ops: u64,
+    /// Operations currently in history (not yet rewound).
+    pub history_depth: usize,
+    /// Number of registers.
+    pub num_registers: usize,
+    /// Total bits across all registers.
+    pub total_bits: usize,
+}
+
+impl std::fmt::Display for RuntimeStats {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "ReversibleRuntime: {} ops executed, {} in history, {} registers ({} bits)",
+            self.total_ops, self.history_depth, self.num_registers, self.total_bits
+        )
+    }
 }
 
 impl ReversibleRuntime {
@@ -50,6 +75,7 @@ impl ReversibleRuntime {
         Self {
             engine: ExecutionEngine::new(registers),
             history: Vec::new(),
+            total_ops: 0,
         }
     }
 
@@ -57,6 +83,7 @@ impl ReversibleRuntime {
     pub fn execute_tracked(&mut self, op: Op) {
         self.apply_op(&op);
         self.history.push(op);
+        self.total_ops += 1;
     }
 
     /// Executes a sequence of operations with tracking.
@@ -74,6 +101,7 @@ impl ReversibleRuntime {
         for _ in 0..n {
             let op = self.history.pop().ok_or(RewindError::GarbageRemaining(0))?;
             self.apply_op(&op);
+            self.total_ops += 1;
         }
         Ok(())
     }
@@ -117,6 +145,16 @@ impl ReversibleRuntime {
     /// Returns the number of registers.
     pub fn num_registers(&self) -> usize {
         self.engine.registers().len()
+    }
+
+    /// Returns runtime statistics.
+    pub fn stats(&self) -> RuntimeStats {
+        RuntimeStats {
+            total_ops: self.total_ops,
+            history_depth: self.history.len(),
+            num_registers: self.engine.registers().len(),
+            total_bits: self.engine.registers().iter().map(|r| r.bit_count()).sum(),
+        }
     }
 
     /// Returns a snapshot of all register values (for tracing/display).
