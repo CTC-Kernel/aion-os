@@ -3,6 +3,8 @@
 [![CI](https://github.com/CTC-Kernel/aion-os/actions/workflows/ci.yml/badge.svg)](https://github.com/CTC-Kernel/aion-os/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 [![Rust](https://img.shields.io/badge/Rust-2024-orange.svg)](https://www.rust-lang.org/)
+[![Tests](https://img.shields.io/badge/tests-150%20passed-brightgreen.svg)](#)
+[![Crates](https://img.shields.io/badge/crates-7-informational.svg)](#architecture)
 
 **Le premier SDK de calcul nativement reversible pour Rust.**
 
@@ -391,7 +393,7 @@ git clone https://github.com/CTC-Kernel/aion-os.git
 cd aion-os
 cargo build
 
-# Lancer les tests (134 tests doivent passer)
+# Lancer les tests (150 tests doivent passer)
 cargo test
 
 # Verifier le style
@@ -486,3 +488,25 @@ Double licence au choix :
 *Construit avec la conviction que l'information ne devrait jamais etre detruite.*
 
 *Built with the conviction that information should never be destroyed.*
+
+---
+
+## Liens
+
+| Document | Description |
+|----------|-------------|
+| [CHANGELOG.md](CHANGELOG.md) | Historique complet des changements |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Guide de contribution |
+| [SECURITY.md](SECURITY.md) | Politique de securite et signalement de vulnerabilites |
+| [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | Code de conduite |
+| [project-context.md](project-context.md) | Contexte architectural pour les contributeurs IA/humains |
+| [LICENSE-MIT](LICENSE-MIT) | Licence MIT |
+| [LICENSE-APACHE](LICENSE-APACHE) | Licence Apache 2.0 |
+
+---
+
+<sub>
+
+**Mots-cles** : reversible computing, calcul reversible, Rust SDK, Toffoli gate, CNOT, Pauli-X, time-travel debugging, debugger temporel, linear types, types lineaires, Bennett algorithm, Landauer principle, garbage-free computing, zero-entropy, information preservation, quantum computing, reversible virtual machine, RVM, proc-macro, compile-time verification, energy-efficient computing, green computing, Vaire Computing, adiabatic computing, SIMD, open source Rust
+
+</sub>
