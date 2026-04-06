@@ -128,14 +128,14 @@ impl ExecutionEngine {
 }
 
 /// A reversible program: a sequence of operations that can be run forward and backward.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ReversibleProgram {
     /// The operations in forward order.
     pub ops: Vec<Op>,
 }
 
 /// A single reversible operation in a program.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Op {
     /// Pauli-X (NOT) on register index.
     Not(usize),
@@ -161,6 +161,33 @@ impl std::fmt::Display for Op {
 impl ReversibleProgram {
     /// Creates a new program from a list of operations.
     pub fn new(ops: Vec<Op>) -> Self {
+        Self { ops }
+    }
+
+    /// Returns the number of operations in the program.
+    pub fn len(&self) -> usize {
+        self.ops.len()
+    }
+
+    /// Returns true if the program has no operations.
+    pub fn is_empty(&self) -> bool {
+        self.ops.is_empty()
+    }
+
+    /// Returns the reversed program (same ops in reverse order).
+    ///
+    /// Since all Rewind gates are self-inverse, the reversed program
+    /// is the inverse of the original.
+    pub fn reversed(&self) -> Self {
+        Self {
+            ops: self.ops.iter().rev().cloned().collect(),
+        }
+    }
+
+    /// Concatenates two programs into one.
+    pub fn concat(&self, other: &Self) -> Self {
+        let mut ops = self.ops.clone();
+        ops.extend_from_slice(&other.ops);
         Self { ops }
     }
 

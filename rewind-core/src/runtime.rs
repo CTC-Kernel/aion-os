@@ -147,6 +147,16 @@ impl ReversibleRuntime {
         self.engine.registers().len()
     }
 
+    /// Returns an iterator over all registers.
+    pub fn iter_registers(&self) -> impl Iterator<Item = &BitPlane> {
+        self.engine.registers().iter()
+    }
+
+    /// Returns the operation history (for inspection/debugging).
+    pub fn history(&self) -> &[Op] {
+        &self.history
+    }
+
     /// Returns runtime statistics.
     pub fn stats(&self) -> RuntimeStats {
         RuntimeStats {
