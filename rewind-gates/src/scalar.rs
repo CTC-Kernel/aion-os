@@ -123,6 +123,55 @@ impl ReversibleOp for Toffoli {
     }
 }
 
+/// Fredkin gate (CSWAP): controlled swap — the other universal reversible gate.
+///
+/// `Fredkin(control, a, b)`: if control bit is 1, swap a and b. Otherwise no-op.
+/// Implemented as: `CNOT(a,b); Toffoli(control,b,a); CNOT(a,b)`.
+pub struct Fredkin;
+
+/// State for Fredkin: one control and two targets.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FredkinState {
+    pub control: BitPlane,
+    pub target_a: BitPlane,
+    pub target_b: BitPlane,
+}
+
+impl ReversibleOp for Fredkin {
+    type State = FredkinState;
+    type Ancilla = ();
+
+    fn execute(&self, state: FredkinState) -> (FredkinState, ()) {
+        // CSWAP: where control=1, swap a and b bits
+        // Formula: diff = a XOR b; masked = diff AND control; a ^= masked; b ^= masked
+        let diff = state.target_a.xor(&state.target_b);
+        let masked = diff.and(&state.control);
+        let new_a = state.target_a.xor(&masked);
+        let new_b = state.target_b.xor(&masked);
+        (
+            FredkinState {
+                control: state.control,
+                target_a: new_a,
+                target_b: new_b,
+            },
+            (),
+        )
+    }
+
+    fn undo(&self, state: FredkinState, _: ()) -> FredkinState {
+        // Fredkin is self-inverse
+        let diff = state.target_a.xor(&state.target_b);
+        let masked = diff.and(&state.control);
+        let orig_a = state.target_a.xor(&masked);
+        let orig_b = state.target_b.xor(&masked);
+        FredkinState {
+            control: state.control,
+            target_a: orig_a,
+            target_b: orig_b,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

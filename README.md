@@ -1,5 +1,9 @@
 # Rewind
 
+<p align="center">
+  <img src="assets/docs/logo_header.png" width="400" alt="Rewind Logo" />
+</p>
+
 [![CI](https://github.com/CTC-Kernel/aion-os/actions/workflows/ci.yml/badge.svg)](https://github.com/CTC-Kernel/aion-os/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
 [![Rust](https://img.shields.io/badge/Rust-2024-orange.svg)](https://www.rust-lang.org/)
@@ -44,6 +48,10 @@ Rewind est un SDK qui garantit que **chaque operation peut etre defaite**. Contr
    └──────────────────┘            └──────────────────┘
          Chaque etat est restaure parfaitement.
 ```
+
+<p align="center">
+  <img src="assets/docs/reversible_flow.png" width="800" alt="Reversible Computing Flow" />
+</p>
 
 ### Pourquoi c'est different ?
 
@@ -196,12 +204,14 @@ println!("{}", cell.get());      // OK
 
 // Consommer — seule sortie possible
 let value = cell.consume();      // OK, retourne 52
-assert_eq!(value, 52);
-
 // Si on oublie consume() :
 // let _leak = QuantumCell::new(99);
 // → panic!("QuantumCell dropped without being consumed — information lost")
 ```
+
+<p align="center">
+  <img src="assets/docs/quantum_cell.png" width="600" alt="QuantumCell Metaphor" />
+</p>
 
 ```mermaid
 stateDiagram-v2
@@ -351,6 +361,10 @@ graph LR
     style B fill:#bbdefb
     style G fill:#fff9c4
 ```
+
+<p align="center">
+  <img src="assets/docs/scientific_pillars.png" width="800" alt="Scientific Pillars of Reversible Computing" />
+</p>
 
 | Fondation | Annee | Contribution | Confiance |
 |-----------|-------|-------------|-----------|
