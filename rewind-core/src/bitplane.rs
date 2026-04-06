@@ -17,6 +17,7 @@
 /// A contiguous array of bits stored in `u64` words, optimized for bulk
 /// bitwise operations (XOR, AND, NOT) that map directly to SIMD instructions.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct BitPlane {
     words: Vec<u64>,
 }

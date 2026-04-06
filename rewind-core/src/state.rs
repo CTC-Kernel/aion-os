@@ -17,14 +17,17 @@
 
 /// Index into the register file of the reversible VM.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct RegisterId(pub u32);
 
 /// Index into the ancilla bit storage.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct AncillaId(pub u32);
 
 /// Identifier for a saved checkpoint state.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct CheckpointId(pub u32);
 
 #[cfg(test)]

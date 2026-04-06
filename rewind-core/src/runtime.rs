@@ -157,6 +157,18 @@ impl ReversibleRuntime {
         &self.history
     }
 
+    /// Executes a `ReversibleProgram` forward with tracking.
+    pub fn run_forward(&mut self, program: &crate::engine::ReversibleProgram) {
+        self.execute_all_tracked(&program.ops);
+    }
+
+    /// Executes a `ReversibleProgram` backward (reverse order).
+    pub fn run_backward(&mut self, program: &crate::engine::ReversibleProgram) {
+        for op in program.ops.iter().rev() {
+            self.execute_tracked(op.clone());
+        }
+    }
+
     /// Returns runtime statistics.
     pub fn stats(&self) -> RuntimeStats {
         RuntimeStats {

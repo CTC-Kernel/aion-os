@@ -17,9 +17,11 @@ rewind-bennett = { path = "../rewind-bennett", optional = true }
 rewind-gc = { path = "../rewind-gc" }
 rewind-bennett = { path = "../rewind-bennett" }
 proptest = "1"
+serde_json = "1"
 
 [features]
 default = []
 simd = ["rewind-gates/simd"]
 stable-simd = ["rewind-gates/stable-simd"]
 bennett = ["dep:rewind-bennett"]
+serde = ["rewind-core/serde"]

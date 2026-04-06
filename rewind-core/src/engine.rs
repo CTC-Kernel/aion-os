@@ -129,6 +129,7 @@ impl ExecutionEngine {
 
 /// A reversible program: a sequence of operations that can be run forward and backward.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ReversibleProgram {
     /// The operations in forward order.
     pub ops: Vec<Op>,
@@ -136,6 +137,7 @@ pub struct ReversibleProgram {
 
 /// A single reversible operation in a program.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Op {
     /// Pauli-X (NOT) on register index.
     Not(usize),

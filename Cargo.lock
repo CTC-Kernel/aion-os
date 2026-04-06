@@ -592,7 +592,7 @@ checksum = "dc897dd8d9e8bd1ed8cdad82b5966c3e0ecae09fb1907d58efaa013543185d0a"
 
 [[package]]
 name = "rewind"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "proptest",
  "rewind-bennett",
@@ -600,11 +600,12 @@ dependencies = [
  "rewind-dsl",
  "rewind-gates",
  "rewind-gc",
+ "serde_json",
 ]
 
 [[package]]
 name = "rewind-bennett"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "proptest",
  "rewind-core",
@@ -612,14 +613,16 @@ dependencies = [
 
 [[package]]
 name = "rewind-core"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "proptest",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
 name = "rewind-dsl"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -628,7 +631,7 @@ dependencies = [
 
 [[package]]
 name = "rewind-gates"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "criterion",
  "proptest",
@@ -637,14 +640,14 @@ dependencies = [
 
 [[package]]
 name = "rewind-gc"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "rewind-core",
 ]
 
 [[package]]
 name = "rewind-playground"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "rewind",
 ]
