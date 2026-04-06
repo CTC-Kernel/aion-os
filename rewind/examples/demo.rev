@@ -1,0 +1,9 @@
+# Rewind Demo Program
+# This circuit applies NOT, CNOT, and Toffoli gates
+# then the CLI will automatically rewind everything
+
+NOT 0
+CNOT 0 1
+TOFF 0 1 2
+NOT 2
+CNOT 2 0
