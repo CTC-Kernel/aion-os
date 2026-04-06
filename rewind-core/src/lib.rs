@@ -5,8 +5,8 @@
 //! This crate provides the foundational abstractions:
 //! - `QuantumCell` — Linear type that must be consumed exactly once
 //! - `ReversibleOp` — Trait guaranteeing operation reversibility
-//! - `ExecutionBackend` — Hardware abstraction for execution targets
 //! - `BitPlane` — SIMD-friendly bit storage (Structure of Arrays layout)
+//! - `RewindError` — Typed, actionable error types
 
 pub mod backend;
 pub mod bitplane;
@@ -15,4 +15,8 @@ pub mod error;
 pub mod state;
 pub mod traits;
 
+pub use bitplane::BitPlane;
 pub use cell::QuantumCell;
+pub use error::RewindError;
+pub use state::{AncillaId, CheckpointId, RegisterId};
+pub use traits::{ReversibleOp, assert_reversible, check_reversible};
