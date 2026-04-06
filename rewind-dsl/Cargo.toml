@@ -11,6 +11,6 @@ description = "Procedural macro #[reversible] for Rewind — compile-time revers
 proc-macro = true
 
 [dependencies]
-syn = { version = "2", features = ["full"] }
+syn = { version = "2", features = ["full", "visit"] }
 quote = "1"
 proc-macro2 = "1"
