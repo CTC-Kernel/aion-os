@@ -10,9 +10,9 @@ fn main() {
 
     // Create 3 registers with initial values
     let registers = vec![
-        BitPlane::from_words(vec![0xFF]),  // Register 0: 0xFF
-        BitPlane::from_words(vec![0x0F]),  // Register 1: 0x0F
-        BitPlane::from_words(vec![0x00]),  // Register 2: 0x00
+        BitPlane::from_words(vec![0xFF]), // Register 0: 0xFF
+        BitPlane::from_words(vec![0x0F]), // Register 1: 0x0F
+        BitPlane::from_words(vec![0x00]), // Register 2: 0x00
     ];
 
     let mut engine = ExecutionEngine::new(registers);
@@ -21,9 +21,16 @@ fn main() {
 
     // Build a reversible program
     let program = ReversibleProgram::new(vec![
-        Op::Not(0),                                    // Invert register 0
-        Op::Cnot { control: 0, target: 1 },           // XOR reg1 with reg0
-        Op::Toffoli { c1: 0, c2: 1, target: 2 },     // reg2 ^= (reg0 AND reg1)
+        Op::Not(0), // Invert register 0
+        Op::Cnot {
+            control: 0,
+            target: 1,
+        }, // XOR reg1 with reg0
+        Op::Toffoli {
+            c1: 0,
+            c2: 1,
+            target: 2,
+        }, // reg2 ^= (reg0 AND reg1)
     ]);
 
     // Execute forward

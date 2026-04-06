@@ -114,9 +114,8 @@ mod tests {
 
     #[test]
     fn plan_has_checkpoints() {
-        let graph = ComputationGraph::linear_chain(
-            &["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]
-        );
+        let graph =
+            ComputationGraph::linear_chain(&["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]);
         let executor = BennettExecutor::default();
         let plan = executor.plan(&graph);
 

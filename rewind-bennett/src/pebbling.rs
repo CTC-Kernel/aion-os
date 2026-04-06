@@ -173,7 +173,10 @@ mod tests {
         let positions = strategy.checkpoint_positions();
 
         for i in 1..positions.len() {
-            assert!(positions[i] > positions[i - 1], "checkpoints must be sorted");
+            assert!(
+                positions[i] > positions[i - 1],
+                "checkpoints must be sorted"
+            );
         }
     }
 

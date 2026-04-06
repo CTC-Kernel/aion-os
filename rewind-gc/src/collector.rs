@@ -59,8 +59,7 @@ impl GarbageFreeCollector {
     ///
     /// Returns `Err(RewindError::MemoryBudgetExceeded)` if the budget would be exceeded.
     pub fn checkpoint_ancilla(&mut self, state: BitPlane) -> Result<(), RewindError> {
-        let new_usage = self.stack.memory_usage()
-            + state.len() * std::mem::size_of::<u64>();
+        let new_usage = self.stack.memory_usage() + state.len() * std::mem::size_of::<u64>();
         self.budget.check(new_usage)?;
         self.stack.push(state);
         Ok(())
@@ -117,9 +116,12 @@ mod tests {
         let mut gc = GarbageFreeCollector::unlimited();
 
         // Forward: save 3 states
-        gc.checkpoint_ancilla(BitPlane::from_words(vec![1])).unwrap();
-        gc.checkpoint_ancilla(BitPlane::from_words(vec![2])).unwrap();
-        gc.checkpoint_ancilla(BitPlane::from_words(vec![3])).unwrap();
+        gc.checkpoint_ancilla(BitPlane::from_words(vec![1]))
+            .unwrap();
+        gc.checkpoint_ancilla(BitPlane::from_words(vec![2]))
+            .unwrap();
+        gc.checkpoint_ancilla(BitPlane::from_words(vec![3]))
+            .unwrap();
         assert_eq!(gc.ancilla_count(), 3);
         assert!(!gc.is_garbage_free());
 
@@ -139,9 +141,11 @@ mod tests {
         let mut gc = GarbageFreeCollector::new(MemoryBudget::new(16));
 
         // First push: 8 bytes — OK
-        gc.checkpoint_ancilla(BitPlane::from_words(vec![1])).unwrap();
+        gc.checkpoint_ancilla(BitPlane::from_words(vec![1]))
+            .unwrap();
         // Second push: 16 bytes total — OK
-        gc.checkpoint_ancilla(BitPlane::from_words(vec![2])).unwrap();
+        gc.checkpoint_ancilla(BitPlane::from_words(vec![2]))
+            .unwrap();
         // Third push: 24 bytes — over budget!
         let result = gc.checkpoint_ancilla(BitPlane::from_words(vec![3]));
         assert!(result.is_err());
@@ -151,7 +155,8 @@ mod tests {
     #[test]
     fn verify_fails_when_not_garbage_free() {
         let mut gc = GarbageFreeCollector::unlimited();
-        gc.checkpoint_ancilla(BitPlane::from_words(vec![42])).unwrap();
+        gc.checkpoint_ancilla(BitPlane::from_words(vec![42]))
+            .unwrap();
         let err = gc.verify().unwrap_err();
         assert!(err.to_string().contains("1 bits remain"));
     }
@@ -166,7 +171,8 @@ mod tests {
     fn memory_remaining_tracks_correctly() {
         let mut gc = GarbageFreeCollector::new(MemoryBudget::new(100));
         assert_eq!(gc.memory_remaining(), 100);
-        gc.checkpoint_ancilla(BitPlane::from_words(vec![0; 5])).unwrap(); // 40 bytes
+        gc.checkpoint_ancilla(BitPlane::from_words(vec![0; 5]))
+            .unwrap(); // 40 bytes
         assert_eq!(gc.memory_remaining(), 60);
     }
 

@@ -26,7 +26,10 @@ struct ReversibilityChecker {
 
 impl ReversibilityChecker {
     fn check_macro<T: quote::ToTokens>(&mut self, mac: &syn::Macro, span_source: &T) {
-        let macro_name = mac.path.segments.last()
+        let macro_name = mac
+            .path
+            .segments
+            .last()
             .map(|s| s.ident.to_string())
             .unwrap_or_default();
 

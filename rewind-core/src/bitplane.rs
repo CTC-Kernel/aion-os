@@ -58,8 +58,14 @@ impl BitPlane {
     ///
     /// This is the fundamental operation for CNOT and Toffoli gates.
     pub fn xor(&self, other: &BitPlane) -> BitPlane {
-        assert_eq!(self.words.len(), other.words.len(), "BitPlane length mismatch");
-        let words = self.words.iter()
+        assert_eq!(
+            self.words.len(),
+            other.words.len(),
+            "BitPlane length mismatch"
+        );
+        let words = self
+            .words
+            .iter()
             .zip(other.words.iter())
             .map(|(a, b)| a ^ b)
             .collect();
@@ -70,8 +76,14 @@ impl BitPlane {
     ///
     /// Used in Toffoli gate: `target ^= (control1 & control2)`.
     pub fn and(&self, other: &BitPlane) -> BitPlane {
-        assert_eq!(self.words.len(), other.words.len(), "BitPlane length mismatch");
-        let words = self.words.iter()
+        assert_eq!(
+            self.words.len(),
+            other.words.len(),
+            "BitPlane length mismatch"
+        );
+        let words = self
+            .words
+            .iter()
             .zip(other.words.iter())
             .map(|(a, b)| a & b)
             .collect();
@@ -86,7 +98,11 @@ impl BitPlane {
 
     /// In-place XOR: `self ^= other`.
     pub fn xor_assign(&mut self, other: &BitPlane) {
-        assert_eq!(self.words.len(), other.words.len(), "BitPlane length mismatch");
+        assert_eq!(
+            self.words.len(),
+            other.words.len(),
+            "BitPlane length mismatch"
+        );
         for (a, b) in self.words.iter_mut().zip(other.words.iter()) {
             *a ^= b;
         }

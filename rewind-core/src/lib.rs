@@ -16,10 +16,10 @@ pub mod error;
 pub mod state;
 pub mod traits;
 
+pub use backend::{ExecutionBackend, SimulatedCpu};
 pub use bitplane::BitPlane;
 pub use cell::QuantumCell;
+pub use engine::{ExecutionEngine, Op, ReversibleProgram};
 pub use error::RewindError;
 pub use state::{AncillaId, CheckpointId, RegisterId};
-pub use backend::{ExecutionBackend, SimulatedCpu};
-pub use engine::{ExecutionEngine, Op, ReversibleProgram};
 pub use traits::{ReversibleOp, assert_reversible, check_reversible};

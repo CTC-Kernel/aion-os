@@ -139,7 +139,7 @@ mod tests {
         let mut stack = AncillaStack::new();
         // Each u64 word = 8 bytes
         stack.push(BitPlane::from_words(vec![0; 10])); // 10 words = 80 bytes
-        stack.push(BitPlane::from_words(vec![0; 5]));  // 5 words = 40 bytes
+        stack.push(BitPlane::from_words(vec![0; 5])); // 5 words = 40 bytes
         assert_eq!(stack.memory_usage(), 120);
     }
 

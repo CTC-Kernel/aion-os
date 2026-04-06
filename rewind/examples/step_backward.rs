@@ -16,31 +16,42 @@ fn main() {
 
     // Save checkpoint before computation
     let checkpoint = engine.checkpoint();
-    println!("Checkpoint saved. Register 0 = {}", engine.registers()[0].words()[0]);
+    println!(
+        "Checkpoint saved. Register 0 = {}",
+        engine.registers()[0].words()[0]
+    );
 
     // Execute several operations
     let program = ReversibleProgram::new(vec![
         Op::Not(0),
-        Op::Cnot { control: 0, target: 1 },
+        Op::Cnot {
+            control: 0,
+            target: 1,
+        },
         Op::Not(1),
     ]);
 
     program.forward(&mut engine);
-    println!("After computation: Register 0 = {}, Register 1 = {}",
+    println!(
+        "After computation: Register 0 = {}, Register 1 = {}",
         engine.registers()[0].words()[0],
         engine.registers()[1].words()[0],
     );
 
     // Something went wrong? Step backward!
     program.backward(&mut engine);
-    println!("After step backward: Register 0 = {}, Register 1 = {}",
+    println!(
+        "After step backward: Register 0 = {}, Register 1 = {}",
         engine.registers()[0].words()[0],
         engine.registers()[1].words()[0],
     );
 
     // Or restore from checkpoint
     engine.restore(checkpoint).unwrap();
-    println!("After checkpoint restore: Register 0 = {}", engine.registers()[0].words()[0]);
+    println!(
+        "After checkpoint restore: Register 0 = {}",
+        engine.registers()[0].words()[0]
+    );
 
     assert_eq!(engine.registers()[0].words()[0], 42);
     println!("\n✅ Time-travel debugging works. The past is always accessible.");

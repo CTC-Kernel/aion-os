@@ -1,7 +1,7 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion, BenchmarkId};
+use criterion::{BenchmarkId, Criterion, black_box, criterion_group, criterion_main};
 use rewind_core::bitplane::BitPlane;
 use rewind_core::traits::ReversibleOp;
-use rewind_gates::scalar::{PauliX, Cnot, CnotState, Toffoli, ToffoliState};
+use rewind_gates::scalar::{Cnot, CnotState, PauliX, Toffoli, ToffoliState};
 
 fn bench_pauli_x(c: &mut Criterion) {
     let mut group = c.benchmark_group("PauliX");

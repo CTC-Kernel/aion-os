@@ -174,7 +174,10 @@ mod tests {
     use super::*;
 
     fn make_engine(vals: &[u64]) -> ExecutionEngine {
-        let regs: Vec<BitPlane> = vals.iter().map(|v| BitPlane::from_words(vec![*v])).collect();
+        let regs: Vec<BitPlane> = vals
+            .iter()
+            .map(|v| BitPlane::from_words(vec![*v]))
+            .collect();
         ExecutionEngine::new(regs)
     }
 
@@ -195,7 +198,10 @@ mod tests {
         let mut engine = make_engine(&[0xFF, 0x0F]);
         let original: Vec<_> = engine.registers().to_vec();
 
-        let prog = ReversibleProgram::new(vec![Op::Cnot { control: 0, target: 1 }]);
+        let prog = ReversibleProgram::new(vec![Op::Cnot {
+            control: 0,
+            target: 1,
+        }]);
         prog.forward(&mut engine);
         prog.backward(&mut engine);
         assert_eq!(engine.registers().to_vec(), original);
@@ -206,7 +212,11 @@ mod tests {
         let mut engine = make_engine(&[0xFF, 0x0F, 0xAB]);
         let original: Vec<_> = engine.registers().to_vec();
 
-        let prog = ReversibleProgram::new(vec![Op::Toffoli { c1: 0, c2: 1, target: 2 }]);
+        let prog = ReversibleProgram::new(vec![Op::Toffoli {
+            c1: 0,
+            c2: 1,
+            target: 2,
+        }]);
         prog.forward(&mut engine);
         prog.backward(&mut engine);
         assert_eq!(engine.registers().to_vec(), original);
@@ -219,10 +229,20 @@ mod tests {
 
         let prog = ReversibleProgram::new(vec![
             Op::Not(0),
-            Op::Cnot { control: 0, target: 1 },
-            Op::Toffoli { c1: 0, c2: 1, target: 2 },
+            Op::Cnot {
+                control: 0,
+                target: 1,
+            },
+            Op::Toffoli {
+                c1: 0,
+                c2: 1,
+                target: 2,
+            },
             Op::Not(2),
-            Op::Cnot { control: 2, target: 0 },
+            Op::Cnot {
+                control: 2,
+                target: 0,
+            },
         ]);
 
         prog.forward(&mut engine);

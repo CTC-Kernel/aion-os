@@ -41,7 +41,10 @@ impl fmt::Display for RewindError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InformationLost => {
-                write!(f, "QuantumCell dropped without being consumed — information lost")
+                write!(
+                    f,
+                    "QuantumCell dropped without being consumed — information lost"
+                )
             }
             Self::CheckpointNotFound(id) => {
                 write!(f, "Checkpoint {} not found", id.0)
@@ -53,10 +56,7 @@ impl fmt::Display for RewindError {
                 )
             }
             Self::MemoryBudgetExceeded { used, limit } => {
-                write!(
-                    f,
-                    "Memory budget exceeded: {used} > {limit} bytes"
-                )
+                write!(f, "Memory budget exceeded: {used} > {limit} bytes")
             }
         }
     }
@@ -79,7 +79,10 @@ mod tests {
         let e3 = RewindError::GarbageRemaining(5);
         assert!(e3.to_string().contains("5 bits remain"));
 
-        let e4 = RewindError::MemoryBudgetExceeded { used: 1024, limit: 512 };
+        let e4 = RewindError::MemoryBudgetExceeded {
+            used: 1024,
+            limit: 512,
+        };
         assert!(e4.to_string().contains("1024 > 512"));
     }
 
