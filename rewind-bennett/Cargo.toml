@@ -9,3 +9,6 @@ description = "Bennett's algorithm for Rewind — automatic irreversible-to-reve
 
 [dependencies]
 rewind-core = { path = "../rewind-core" }
+
+[dev-dependencies]
+proptest = "1"
