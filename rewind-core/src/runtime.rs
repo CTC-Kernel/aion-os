@@ -203,6 +203,7 @@ impl ReversibleRuntime {
             Op::Not(i) => self.engine.apply_not(*i),
             Op::Cnot { control, target } => self.engine.apply_cnot(*control, *target),
             Op::Toffoli { c1, c2, target } => self.engine.apply_toffoli(*c1, *c2, *target),
+            Op::Fredkin { control, a, b } => self.engine.apply_fredkin(*control, *a, *b),
         }
     }
 }

@@ -269,6 +269,53 @@ mod tests {
                 target: BitPlane::from_words(vec![3]),
             }
         ));
+        assert!(check_reversible(
+            &Fredkin,
+            FredkinState {
+                control: BitPlane::from_words(vec![0xFF]),
+                target_a: BitPlane::from_words(vec![0xAA]),
+                target_b: BitPlane::from_words(vec![0x55]),
+            }
+        ));
+    }
+
+    // --- Fredkin ---
+
+    #[test]
+    fn fredkin_swaps_where_control_is_one() {
+        let state = FredkinState {
+            control: BitPlane::from_words(vec![u64::MAX]), // All 1s = full swap
+            target_a: BitPlane::from_words(vec![0xAA]),
+            target_b: BitPlane::from_words(vec![0x55]),
+        };
+        let (result, _) = Fredkin.execute(state);
+        assert_eq!(result.target_a.words()[0], 0x55); // Swapped
+        assert_eq!(result.target_b.words()[0], 0xAA); // Swapped
+        assert_eq!(result.control.words()[0], u64::MAX); // Unchanged
+    }
+
+    #[test]
+    fn fredkin_no_swap_where_control_is_zero() {
+        let state = FredkinState {
+            control: BitPlane::from_words(vec![0x00]), // All 0s = no swap
+            target_a: BitPlane::from_words(vec![0xAA]),
+            target_b: BitPlane::from_words(vec![0x55]),
+        };
+        let (result, _) = Fredkin.execute(state);
+        assert_eq!(result.target_a.words()[0], 0xAA); // Unchanged
+        assert_eq!(result.target_b.words()[0], 0x55); // Unchanged
+    }
+
+    #[test]
+    fn fredkin_is_reversible() {
+        assert_reversible(
+            &Fredkin,
+            FredkinState {
+                control: BitPlane::from_words(vec![0xF0F0]),
+                target_a: BitPlane::from_words(vec![0xDEAD]),
+                target_b: BitPlane::from_words(vec![0xBEEF]),
+            },
+        );
     }
 }
 
@@ -311,6 +358,16 @@ mod proptests {
                 target: BitPlane::from_words(vec![tgt, tgtb]),
             };
             prop_assert!(check_reversible(&Toffoli, state));
+        }
+
+        #[test]
+        fn fredkin_reversible_for_all(ctrl: u64, a: u64, b: u64) {
+            let state = FredkinState {
+                control: BitPlane::from_words(vec![ctrl]),
+                target_a: BitPlane::from_words(vec![a]),
+                target_b: BitPlane::from_words(vec![b]),
+            };
+            prop_assert!(check_reversible(&Fredkin, state));
         }
     }
 }

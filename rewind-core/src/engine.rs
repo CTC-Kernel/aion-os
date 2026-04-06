@@ -171,6 +171,7 @@ impl ReversibleProgram {
                 Op::Not(i) => engine.apply_not(*i),
                 Op::Cnot { control, target } => engine.apply_cnot(*control, *target),
                 Op::Toffoli { c1, c2, target } => engine.apply_toffoli(*c1, *c2, *target),
+                Op::Fredkin { control, a, b } => engine.apply_fredkin(*control, *a, *b),
             }
         }
     }
@@ -185,6 +186,7 @@ impl ReversibleProgram {
                 Op::Not(i) => engine.apply_not(*i),
                 Op::Cnot { control, target } => engine.apply_cnot(*control, *target),
                 Op::Toffoli { c1, c2, target } => engine.apply_toffoli(*c1, *c2, *target),
+                Op::Fredkin { control, a, b } => engine.apply_fredkin(*control, *a, *b),
             }
         }
     }

@@ -30,12 +30,13 @@ pub struct GateCounts {
     pub not_count: usize,
     pub cnot_count: usize,
     pub toffoli_count: usize,
+    pub fredkin_count: usize,
 }
 
 impl GateCounts {
     /// Total number of gates.
     pub fn total(&self) -> usize {
-        self.not_count + self.cnot_count + self.toffoli_count
+        self.not_count + self.cnot_count + self.toffoli_count + self.fredkin_count
     }
 }
 
@@ -43,8 +44,8 @@ impl std::fmt::Display for GateCounts {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "NOT: {}, CNOT: {}, Toffoli: {}",
-            self.not_count, self.cnot_count, self.toffoli_count
+            "NOT: {}, CNOT: {}, Toffoli: {}, Fredkin: {}",
+            self.not_count, self.cnot_count, self.toffoli_count, self.fredkin_count
         )
     }
 }
@@ -91,6 +92,13 @@ impl ProgramInfo {
                     registers_used.insert(*target);
                     max_register = max_register.max(*c1).max(*c2).max(*target);
                 }
+                Op::Fredkin { control, a, b } => {
+                    gate_counts.fredkin_count += 1;
+                    registers_used.insert(*control);
+                    registers_used.insert(*a);
+                    registers_used.insert(*b);
+                    max_register = max_register.max(*control).max(*a).max(*b);
+                }
             }
         }
 
@@ -110,6 +118,11 @@ impl ProgramInfo {
                         per_reg[*c1] += 1;
                         per_reg[*c2] += 1;
                         per_reg[*target] += 1;
+                    }
+                    Op::Fredkin { control, a, b } => {
+                        per_reg[*control] += 1;
+                        per_reg[*a] += 1;
+                        per_reg[*b] += 1;
                     }
                 }
             }
@@ -162,6 +175,7 @@ pub fn serialize_text(ops: &[Op]) -> String {
             Op::Not(i) => format!("NOT {i}"),
             Op::Cnot { control, target } => format!("CNOT {control} {target}"),
             Op::Toffoli { c1, c2, target } => format!("TOFF {c1} {c2} {target}"),
+            Op::Fredkin { control, a, b } => format!("FRED {control} {a} {b}"),
         })
         .collect::<Vec<_>>()
         .join("\n")
@@ -205,6 +219,18 @@ pub fn deserialize_text(text: &str) -> Result<Vec<Op>, (usize, String)> {
                     .parse::<usize>()
                     .map_err(|_| (i, line.to_string()))?;
                 Op::Toffoli { c1, c2, target }
+            }
+            Some(&"FRED") if parts.len() == 4 => {
+                let control = parts[1]
+                    .parse::<usize>()
+                    .map_err(|_| (i, line.to_string()))?;
+                let a = parts[2]
+                    .parse::<usize>()
+                    .map_err(|_| (i, line.to_string()))?;
+                let b = parts[3]
+                    .parse::<usize>()
+                    .map_err(|_| (i, line.to_string()))?;
+                Op::Fredkin { control, a, b }
             }
             _ => return Err((i, line.to_string())),
         };

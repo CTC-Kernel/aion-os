@@ -14,24 +14,29 @@
 
 > *L'information est sacree - elle ne doit jamais etre detruite.*
 
-Le Problème Universel : La Mort Thermique de l'Information
+## Le Problème Universel : La Mort Thermique de l'Information
+
 Toute l'informatique actuelle (du supercalculateur à ton iPhone) repose sur la dissipation de chaleur. Pour effacer un bit ou traiter une donnée, on consomme de l'énergie et on crée du désordre (entropie). C'est la limite de Landauer. À cause de cela, l'IA finira par consommer plus d'énergie que la Terre ne peut en produire.
 
-💡 L'Invention : Le Calcul Réversible et Topologique
-Aion-OS est un noyau écrit en Rust conçu pour piloter des processeurs de nouvelle génération (adiabatiques ou topologiques). Au lieu d'exécuter des instructions qui "consomment" des données, Aion-OS traite l'information comme un flux continu et réversible.
+## Le Calcul Réversible et Topologique
+Rewind est un noyau écrit en Rust conçu pour piloter des processeurs de nouvelle génération (adiabatiques ou topologiques). Au lieu d'exécuter des instructions qui "consomment" des données, Rewind traite l'information comme un flux continu et réversible.
 
-Ce qui en fait une Révolution Historique :
+
+### Ce qui en fait une Révolution Historique :
 
 Consommation d'Énergie Quasi-Nulle : En théorie, un calcul réversible ne dégage aucune chaleur. Tu pourrais faire tourner l'équivalent de l'intelligence humaine sur une pile bouton pendant 10 ans.
 
-L'Ordinateur "Immunitaires" : Le noyau utilise des algorithmes de Logique Linéaire (poussés à l'extrême via le système de types de Rust) pour s'auto-réparer. Si un bit est corrompu par un rayon cosmique, la structure mathématique du langage force le bit à revenir à son état correct par symétrie.
+Le noyau utilise des algorithmes de Logique Linéaire (poussés à l'extrême via le système de types de Rust) pour s'auto-réparer. Si un bit est corrompu par un rayon cosmique, la structure mathématique du langage force le bit à revenir à son état correct par symétrie.
 
-L'Unification Quantique-Classique : Aion-OS est le premier système capable de gérer des registres classiques et des qubits dans le même espace d'adressage, permettant de résoudre des problèmes de chimie ou de physique impossibles aujourd'hui (création de nouveaux matériaux, remèdes contre le cancer en quelques secondes de calcul).
+Rewind est le premier système capable de gérer des registres classiques et des qubits dans le même espace d'adressage, permettant de résoudre des problèmes de chimie ou de physique impossibles aujourd'hui (création de nouveaux matériaux, remèdes contre le cancer en quelques secondes de calcul).
+
 ---
 
 ## Qu'est-ce que Rewind ?
 
-Rewind est un SDK qui garantit que **chaque operation peut etre defaite**. Contrairement aux debuggers classiques qui enregistrent des traces (rr, UndoDB), Rewind rend le calcul lui-meme structurellement inversible - verifie a la compilation, sans overhead d'enregistrement.
+Rewind est un SDK qui garantit que **chaque operation peut etre defaite**. 
+
+Contrairement aux debuggers classiques qui enregistrent des traces (rr, UndoDB), Rewind rend le calcul lui-meme structurellement inversible - verifie a la compilation, sans overhead d'enregistrement.
 
 ```
          FORWARD                          BACKWARD
