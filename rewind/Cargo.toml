@@ -1,0 +1,20 @@
+[package]
+name = "rewind"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+description = "Rewind — the first natively reversible computing SDK for Rust. Information is Sacred."
+
+[dependencies]
+rewind-core = { path = "../rewind-core" }
+rewind-gates = { path = "../rewind-gates" }
+rewind-dsl = { path = "../rewind-dsl" }
+rewind-bennett = { path = "../rewind-bennett", optional = true }
+
+[features]
+default = []
+simd = ["rewind-gates/simd"]
+stable-simd = ["rewind-gates/stable-simd"]
+bennett = ["dep:rewind-bennett"]

@@ -1,0 +1,19 @@
+[workspace]
+members = [
+    "rewind-core",
+    "rewind-gates",
+    "rewind-gc",
+    "rewind-dsl",
+    "rewind-bennett",
+    "rewind",
+    "rewind-playground",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/CYBER-THREAT-CONSULTING/aion-os"
+description = "Rewind — the first natively reversible computing SDK for Rust. Information is Sacred."
+authors = ["Thibaultllopis"]

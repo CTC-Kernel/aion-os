@@ -1,0 +1,16 @@
+[package]
+name = "rewind-gates"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+description = "Reversible logic gates for Rewind — Toffoli, CNOT, Pauli-X with optional SIMD"
+
+[dependencies]
+rewind-core = { path = "../rewind-core" }
+
+[features]
+default = []
+simd = []
+stable-simd = []

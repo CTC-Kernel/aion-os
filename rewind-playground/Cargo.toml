@@ -1,0 +1,11 @@
+[package]
+name = "rewind-playground"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+description = "WASM playground for Rewind — interactive reversible computing in the browser"
+
+[dependencies]
+rewind = { path = "../rewind" }

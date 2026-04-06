@@ -1,0 +1,11 @@
+[package]
+name = "rewind-gc"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+description = "Garbage-Free Collector for Rewind — ancilla mirror stack and uncomputation"
+
+[dependencies]
+rewind-core = { path = "../rewind-core" }
