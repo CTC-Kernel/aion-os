@@ -6,3 +6,6 @@ license.workspace = true
 repository.workspace = true
 authors.workspace = true
 description = "Core types and traits for Rewind — QuantumCell, ReversibleOp, ExecutionBackend"
+
+[dev-dependencies]
+proptest = "1"

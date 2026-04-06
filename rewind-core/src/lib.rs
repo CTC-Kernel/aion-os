@@ -14,3 +14,5 @@ pub mod cell;
 pub mod error;
 pub mod state;
 pub mod traits;
+
+pub use cell::QuantumCell;
