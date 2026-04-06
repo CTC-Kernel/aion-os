@@ -13,6 +13,7 @@ pub mod bitplane;
 pub mod cell;
 pub mod engine;
 pub mod error;
+pub mod fuzzer;
 pub mod program;
 pub mod runtime;
 pub mod state;
