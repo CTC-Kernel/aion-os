@@ -117,6 +117,14 @@ impl ExecutionEngine {
         let mask = self.registers[c1].and(&self.registers[c2]);
         self.registers[target].xor_assign(&mask);
     }
+
+    /// Applies Fredkin (CSWAP): conditionally swaps `a` and `b` where `control` is 1.
+    pub fn apply_fredkin(&mut self, control: usize, a: usize, b: usize) {
+        let diff = self.registers[a].xor(&self.registers[b]);
+        let masked = diff.and(&self.registers[control]);
+        self.registers[a].xor_assign(&masked);
+        self.registers[b].xor_assign(&masked);
+    }
 }
 
 /// A reversible program: a sequence of operations that can be run forward and backward.
@@ -135,6 +143,8 @@ pub enum Op {
     Cnot { control: usize, target: usize },
     /// Toffoli: control1, control2, target register indices.
     Toffoli { c1: usize, c2: usize, target: usize },
+    /// Fredkin (CSWAP): control, target_a, target_b register indices.
+    Fredkin { control: usize, a: usize, b: usize },
 }
 
 impl std::fmt::Display for Op {
@@ -143,6 +153,7 @@ impl std::fmt::Display for Op {
             Op::Not(i) => write!(f, "NOT R{i}"),
             Op::Cnot { control, target } => write!(f, "CNOT R{control}->R{target}"),
             Op::Toffoli { c1, c2, target } => write!(f, "TOFF R{c1},R{c2}->R{target}"),
+            Op::Fredkin { control, a, b } => write!(f, "FRED R{control}:R{a}<->R{b}"),
         }
     }
 }

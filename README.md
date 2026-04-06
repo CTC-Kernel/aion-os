@@ -13,6 +13,7 @@
 **Le premier SDK de calcul nativement reversible pour Rust.**
 
 > *L'information est sacree - elle ne doit jamais etre detruite.*
+
 Le Problème Universel : La Mort Thermique de l'Information
 Toute l'informatique actuelle (du supercalculateur à ton iPhone) repose sur la dissipation de chaleur. Pour effacer un bit ou traiter une donnée, on consomme de l'énergie et on crée du désordre (entropie). C'est la limite de Landauer. À cause de cela, l'IA finira par consommer plus d'énergie que la Terre ne peut en produire.
 
