@@ -16,6 +16,7 @@ rewind-bennett = { path = "../rewind-bennett", optional = true }
 [dev-dependencies]
 rewind-gc = { path = "../rewind-gc" }
 rewind-bennett = { path = "../rewind-bennett" }
+proptest = "1"
 
 [features]
 default = []
