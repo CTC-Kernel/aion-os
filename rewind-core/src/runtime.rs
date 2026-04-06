@@ -119,6 +119,47 @@ impl ReversibleRuntime {
         self.engine.registers().len()
     }
 
+    /// Returns a snapshot of all register values (for tracing/display).
+    pub fn snapshot(&self) -> Vec<u64> {
+        self.engine
+            .registers()
+            .iter()
+            .map(|r| r.words().first().copied().unwrap_or(0))
+            .collect()
+    }
+
+    /// Executes operations one by one, calling the callback after each step.
+    ///
+    /// This enables time-travel debugging visualization — the callback
+    /// receives the step number, the operation, and a register snapshot.
+    pub fn execute_traced<F>(&mut self, ops: &[Op], mut on_step: F)
+    where
+        F: FnMut(usize, &Op, &[u64]),
+    {
+        for (i, op) in ops.iter().enumerate() {
+            self.execute_tracked(op.clone());
+            let snap = self.snapshot();
+            on_step(i, op, &snap);
+        }
+    }
+
+    /// Rewinds operations one by one, calling the callback after each step.
+    ///
+    /// The callback receives the step number, the undone operation, and
+    /// the register snapshot after the undo.
+    pub fn rewind_traced<F>(&mut self, n: usize, mut on_step: F) -> Result<(), RewindError>
+    where
+        F: FnMut(usize, &Op, &[u64]),
+    {
+        for i in 0..n {
+            let op = self.history.pop().ok_or(RewindError::GarbageRemaining(0))?;
+            self.apply_op(&op);
+            let snap = self.snapshot();
+            on_step(i, &op, &snap);
+        }
+        Ok(())
+    }
+
     fn apply_op(&mut self, op: &Op) {
         match op {
             Op::Not(i) => self.engine.apply_not(*i),
