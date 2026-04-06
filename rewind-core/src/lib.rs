@@ -19,4 +19,5 @@ pub use bitplane::BitPlane;
 pub use cell::QuantumCell;
 pub use error::RewindError;
 pub use state::{AncillaId, CheckpointId, RegisterId};
+pub use backend::{ExecutionBackend, SimulatedCpu};
 pub use traits::{ReversibleOp, assert_reversible, check_reversible};

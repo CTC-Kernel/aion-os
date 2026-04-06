@@ -10,6 +10,9 @@ description = "Reversible logic gates for Rewind — Toffoli, CNOT, Pauli-X with
 [dependencies]
 rewind-core = { path = "../rewind-core" }
 
+[dev-dependencies]
+proptest = "1"
+
 [features]
 default = []
 simd = []
