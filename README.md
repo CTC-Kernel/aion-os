@@ -2,37 +2,213 @@
 
 [![CI](https://github.com/CTC-Kernel/aion-os/actions/workflows/ci.yml/badge.svg)](https://github.com/CTC-Kernel/aion-os/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](LICENSE-MIT)
+[![Rust](https://img.shields.io/badge/Rust-2024-orange.svg)](https://www.rust-lang.org/)
 
-**The first natively reversible computing SDK for Rust.**
+**Le premier SDK de calcul nativement reversible pour Rust.**
 
-*Information is Sacred — it must never be destroyed.*
+> *L'information est sacree - elle ne doit jamais etre detruite.*
 
 ---
 
-Rewind guarantees that every operation is structurally invertible, verified at compile-time. Unlike record-replay debuggers (rr, UndoDB) that record traces with overhead, Rewind makes computation itself reversible — enabling bidirectional execution, zero-cost rollbacks, and native time-travel debugging.
+## Qu'est-ce que Rewind ?
 
-## Quick Start
+Rewind est un SDK qui garantit que **chaque operation peut etre defaite**. Contrairement aux debuggers classiques qui enregistrent des traces (rr, UndoDB), Rewind rend le calcul lui-meme structurellement inversible - verifie a la compilation, sans overhead d'enregistrement.
+
+```
+         FORWARD                          BACKWARD
+   ┌──────────────────┐            ┌──────────────────┐
+   │  R0 = 0x0A       │            │  R0 = 0x14       │
+   │  R1 = 0x14       │            │  R1 = 0xF5       │
+   │                   │            │                   │
+   │  NOT R0           │            │  undo CNOT R1→R2  │
+   │  CNOT R0→R1       │   rewind  │  undo TOFF        │
+   │  TOFF R0,R1→R2    │ ◄──────── │  undo CNOT R0→R1  │
+   │  CNOT R1→R2       │           │  undo NOT R0       │
+   │                   │            │                   │
+   │  R0 = 0x14        │            │  R0 = 0x0A       │
+   │  R1 = 0xF5        │            │  R1 = 0x14       │
+   └──────────────────┘            └──────────────────┘
+         Chaque etat est restaure parfaitement.
+```
+
+### Pourquoi c'est different ?
+
+| | Rewind | rr / UndoDB | Debugger classique |
+|---|--------|-------------|-------------------|
+| **Methode** | Calcul nativement inversible | Enregistrement + replay | Logs / breakpoints |
+| **Overhead** | Zero enregistrement | 1.2-5x slowdown | Aucun |
+| **Verification** | Compile-time (`#[reversible]`) | Aucune | Aucune |
+| **Multi-usage** | Debug + rollback + fuzzing + securite | Debug seulement | Debug seulement |
+| **Correctness** | Prouve par proptest (`undo(exec(x)) == x`) | Non verifie | Non verifie |
+
+---
+
+## Architecture
+
+Le SDK est compose de 7 crates modulaires dans un workspace Cargo :
+
+```mermaid
+graph TB
+    subgraph "Crate Facade"
+        REWIND["rewind<br/><i>Re-exporte tout</i>"]
+    end
+
+    subgraph "Couche Runtime"
+        CORE["rewind-core<br/><i>QuantumCell, ReversibleOp<br/>Engine, BitPlane</i>"]
+        GATES["rewind-gates<br/><i>Toffoli, CNOT, Pauli-X<br/>Circuits, Benchmarks</i>"]
+        GC["rewind-gc<br/><i>Garbage-Free Collector<br/>AncillaStack, Budget</i>"]
+    end
+
+    subgraph "Couche Compile-Time"
+        DSL["rewind-dsl<br/><i>#[reversible] macro<br/>Validation AST</i>"]
+    end
+
+    subgraph "Couche Algorithme"
+        BENNETT["rewind-bennett<br/><i>Algorithme de Bennett<br/>Graphe + Pebbling</i>"]
+    end
+
+    subgraph "Futur"
+        PLAYGROUND["rewind-playground<br/><i>Playground WASM</i>"]
+    end
+
+    REWIND --> CORE
+    REWIND --> GATES
+    REWIND --> DSL
+    GATES --> CORE
+    GC --> CORE
+    BENNETT --> CORE
+    PLAYGROUND --> REWIND
+
+    style REWIND fill:#e1f5fe
+    style CORE fill:#fff3e0
+    style GATES fill:#e8f5e9
+    style DSL fill:#fce4ec
+    style GC fill:#f3e5f5
+    style BENNETT fill:#fff8e1
+    style PLAYGROUND fill:#f5f5f5
+```
+
+### Decisions Architecturales
+
+| Decision | Choix | Justification |
+|----------|-------|---------------|
+| Structure | Workspace multi-crate | Modulaire, chaque crate publiable independamment |
+| Memoire | Arena allocator + indices types | Plus performant que `Pin<Box<T>>`, cache-friendly |
+| Dispatch VM | `match` sur enum d'opcodes | Quasi-optimal sur CPU modernes (branch predictor) |
+| Layout bits | Structure of Arrays (SoA) | Optimal pour parallelisation SIMD future |
+| Types lineaires | `Drop` + panic + `ManuallyDrop` | Seule approche viable en Rust stable |
+| Features | `simd`, `stable-simd`, `bennett` | Opt-in, le core compile partout |
+
+---
+
+## Guide de Demarrage Rapide
+
+### Installation
 
 ```bash
 git clone https://github.com/CTC-Kernel/aion-os.git
 cd aion-os
-cargo run -p rewind --example hello_rewind
+cargo build
+cargo test   # 134 tests doivent passer
 ```
 
-### QuantumCell — Linear types in Rust
+### Premier Programme Reversible
+
+```rust
+use rewind::prelude::*;
+
+fn main() {
+    // Creer 2 registres
+    let mut rt = ReversibleRuntime::new(vec![
+        BitPlane::from_words(vec![42]),   // R0 = 42
+        BitPlane::from_words(vec![0]),    // R1 = 0
+    ]);
+
+    // Executer des operations (trackees automatiquement)
+    rt.execute_tracked(Op::Not(0));                              // R0 = NOT R0
+    rt.execute_tracked(Op::Cnot { control: 0, target: 1 });     // R1 ^= R0
+
+    println!("Apres forward: R0={}, R1={}",
+        rt.register(0).words()[0],
+        rt.register(1).words()[0]);
+
+    // Rembobiner — restaure l'etat original
+    rt.rewind_all().unwrap();
+
+    assert_eq!(rt.register(0).words()[0], 42);  // Restaure !
+    assert_eq!(rt.register(1).words()[0], 0);   // Restaure !
+    assert!(rt.is_garbage_free());               // Zero dechet
+}
+```
+
+### Exemples Disponibles
+
+```bash
+# Execution forward/backward basique
+cargo run -p rewind --example hello_rewind
+
+# Time-travel debugging avec trace pas-a-pas
+cargo run -p rewind --example time_travel_debug
+
+# Checkpoint et restauration d'etat
+cargo run -p rewind --example step_backward
+
+# Type lineaire QuantumCell
+cargo run -p rewind --example quantum_cell
+
+# Circuits reversibles (additionneur, swap)
+cargo run -p rewind --example reversible_adder
+
+# API unifiee ReversibleRuntime
+cargo run -p rewind --example runtime_demo
+```
+
+---
+
+## Composants Principaux
+
+### QuantumCell — Type Lineaire
+
+Un type qui **doit** etre consomme exactement une fois. Le dropper sans le consommer = panic.
 
 ```rust
 use rewind_core::QuantumCell;
 
-// QuantumCell MUST be consumed — dropping it panics
 let mut cell = QuantumCell::new(42u64);
-*cell.get_mut() += 10;
-let value = cell.consume(); // Only way to extract
+
+// Inspecter sans consommer
+println!("{}", cell.get());      // OK
+*cell.get_mut() += 10;           // Modification en place
+
+// Consommer — seule sortie possible
+let value = cell.consume();      // OK, retourne 52
 assert_eq!(value, 52);
-// Dropping without consume() → panic!("information lost")
+
+// Si on oublie consume() :
+// let _leak = QuantumCell::new(99);
+// → panic!("QuantumCell dropped without being consumed — information lost")
 ```
 
-### Reversible Gates — Toffoli, CNOT, Pauli-X
+```mermaid
+stateDiagram-v2
+    [*] --> Cree: QuantumCell::new(value)
+    Cree --> Emprunte: .get() / .get_mut()
+    Emprunte --> Cree: retour du borrow
+    Cree --> Consomme: .consume()
+    Consomme --> [*]: valeur retournee
+    Cree --> PANIC: drop sans consume
+    PANIC --> [*]: information lost!
+```
+
+### Portes Reversibles
+
+Trois portes universelles — suffisantes pour tout calcul reversible classique :
+
+| Porte | Operation | Inverse | Universelle ? |
+|-------|-----------|---------|---------------|
+| **Pauli-X** (NOT) | `bits = NOT bits` | Elle-meme (auto-inverse) | Non |
+| **CNOT** | `target ^= control` | Elle-meme (auto-inverse) | Non |
+| **Toffoli** (CCNOT) | `target ^= (c1 AND c2)` | Elle-meme (auto-inverse) | **Oui** |
 
 ```rust
 use rewind_core::{BitPlane, ReversibleOp, assert_reversible};
@@ -44,133 +220,269 @@ let state = ToffoliState {
     target: BitPlane::from_words(vec![0x00]),
 };
 
-// Execute forward
 let (output, ancilla) = Toffoli.execute(state.clone());
-// Undo — perfectly restores original state
 let restored = Toffoli.undo(output, ancilla);
-assert_eq!(state, restored); // Information preserved!
+assert_eq!(state, restored); // Parfaitement reversible
+
+// Proptest verifie ceci pour des MILLIERS d'inputs aleatoires
+assert_reversible(&Toffoli, state);
 ```
 
-### Forward/Backward Execution
+### Circuits Pre-Construits
 
 ```rust
-use rewind_core::bitplane::BitPlane;
-use rewind_core::engine::{ExecutionEngine, Op, ReversibleProgram};
+use rewind_gates::circuits;
+use rewind::prelude::*;
 
-let regs = vec![
-    BitPlane::from_words(vec![0xAA]),
-    BitPlane::from_words(vec![0xBB]),
-    BitPlane::from_words(vec![0xCC]),
-];
-let mut engine = ExecutionEngine::new(regs);
-let original = engine.registers().to_vec();
+// Demi-additionneur reversible
+let ops = circuits::half_adder(0, 1, 2);
 
-let program = ReversibleProgram::new(vec![
-    Op::Not(0),
-    Op::Cnot { control: 0, target: 1 },
-    Op::Toffoli { c1: 0, c2: 1, target: 2 },
+// SWAP via 3 CNOTs
+let ops = circuits::swap(0, 1);
+
+// Composition de circuits
+let combined = circuits::compose(vec![
+    circuits::swap(0, 1),
+    vec![Op::Not(0)],
+    circuits::swap(0, 1),
 ]);
 
-program.forward(&mut engine);  // Execute
-program.backward(&mut engine); // Rewind — back to original
-assert_eq!(engine.registers().to_vec(), original);
+// Inversion d'un circuit
+let inverse = circuits::reverse(&combined);
 ```
 
-### Compile-Time Reversibility Verification
+### Macro `#[reversible]`
+
+Verifie a la compilation que votre code est reversible :
 
 ```rust
 use rewind_dsl::reversible;
 
 #[reversible]
-fn safe_computation(x: &mut u64, y: &mut u64) {
-    *x += 42;      // OK — reversible (inverse: -= 42)
-    *y ^= *x;      // OK — XOR is self-inverse
-    // *x = 0;      // COMPILE ERROR: destructive assignment
-    // println!();   // COMPILE ERROR: I/O is irreversible
+fn calcul_sur(x: &mut u64, y: &mut u64) {
+    *x += 42;       // OK — inverse: -= 42
+    *y ^= *x;       // OK — XOR est auto-inverse
+
+    // *x = 0;       // ERREUR COMPILATION: "destructive assignment —
+    //               //   this overwrites information. Use +=, -=, or ^= instead"
+
+    // println!();    // ERREUR COMPILATION: "I/O is an irreversible side effect"
+
+    // std::mem::forget(x);  // ERREUR COMPILATION: "mem::forget bypasses
+    //                       //   Drop and destroys information"
 }
 ```
 
-## Examples
+### Garbage-Free Collector
 
-```bash
-cargo run -p rewind --example hello_rewind    # Forward/backward execution
-cargo run -p rewind --example step_backward   # Checkpoint/restore debugging
-cargo run -p rewind --example quantum_cell    # Linear type demonstration
+Au lieu de liberer la memoire (ce qui detruit de l'information), le GC "de-calcule" les etapes intermediaires :
+
+```rust
+use rewind_gc::{GarbageFreeCollector, MemoryBudget};
+use rewind_core::BitPlane;
+
+let mut gc = GarbageFreeCollector::new(MemoryBudget::new(1024)); // 1 KB max
+
+// Forward : sauvegarder les etats intermediaires
+gc.checkpoint_ancilla(BitPlane::from_words(vec![0xAA])).unwrap();
+gc.checkpoint_ancilla(BitPlane::from_words(vec![0xBB])).unwrap();
+
+// Backward : restaurer en LIFO
+let restored = gc.uncompute().unwrap(); // 0xBB
+let restored = gc.uncompute().unwrap(); // 0xAA
+
+// Verifier : zero dechet
+assert!(gc.is_garbage_free());
 ```
 
-## Crates
+### Time-Travel Debugging
 
-| Crate | Description |
-|-------|-------------|
-| [`rewind`](rewind/) | Facade crate — re-exports everything |
-| [`rewind-core`](rewind-core/) | QuantumCell, ReversibleOp, BitPlane, ExecutionEngine |
-| [`rewind-gates`](rewind-gates/) | Toffoli, CNOT, Pauli-X gates (scalar + SIMD flags) |
-| [`rewind-gc`](rewind-gc/) | Garbage-Free Collector (ancilla mirror stack + memory budget) |
-| [`rewind-dsl`](rewind-dsl/) | `#[reversible]` proc-macro — compile-time validation |
-| [`rewind-bennett`](rewind-bennett/) | Bennett's algorithm (computation graph + pebbling strategy) |
-| [`rewind-playground`](rewind-playground/) | WASM interactive playground (planned) |
+Le coeur de Rewind — observer chaque changement d'etat, puis rembobiner pas a pas :
 
-## Features
+```rust
+use rewind::prelude::*;
 
-- `simd` — `std::simd` gate optimizations (nightly Rust)
-- `stable-simd` — `pulp`-based SIMD (stable Rust)
-- `bennett` — Bennett's automatic reversible compilation
+let mut rt = ReversibleRuntime::new(/* registers */);
+
+// Executer avec trace : chaque pas appelle le callback
+rt.execute_traced(&program, |step, op, regs| {
+    println!("Step {}: {:?} → R0={:X}", step, op, regs[0]);
+});
+
+// Rembobiner avec trace : chaque undo appelle le callback
+rt.rewind_traced(n, |step, op, regs| {
+    println!("Undo {}: {:?} → R0={:X}", step, op, regs[0]);
+}).unwrap();
+```
+
+---
+
+## Fondations Theoriques
+
+Rewind repose sur quatre piliers scientifiques prouves :
+
+```mermaid
+graph LR
+    L["Principe de Landauer<br/>(1961)<br/><i>Effacer 1 bit = kT·ln(2) chaleur</i>"]
+    T["Porte de Toffoli<br/>(1980)<br/><i>Porte universelle reversible</i>"]
+    B["Algorithme de Bennett<br/>(1973)<br/><i>Tout calcul → reversible</i>"]
+    G["Logique Lineaire<br/>(Girard, 1987)<br/><i>Chaque ressource = 1 usage</i>"]
+
+    L --> |"Motivation"| T
+    T --> |"Primitives"| B
+    G --> |"Types Rust"| T
+
+    style L fill:#ffcdd2
+    style T fill:#c8e6c9
+    style B fill:#bbdefb
+    style G fill:#fff9c4
+```
+
+| Fondation | Annee | Contribution | Confiance |
+|-----------|-------|-------------|-----------|
+| **Principe de Landauer** | 1961 | Effacer un bit dissipe kT·ln(2) de chaleur — prouve physiquement | Verifie experimentalement |
+| **Porte de Toffoli** (CCNOT) | 1980 | Porte universelle : tout circuit classique reversible peut etre construit uniquement avec des Toffoli | Prouve mathematiquement |
+| **Algorithme de Bennett** | 1973 | N'importe quel calcul irreversible peut etre transforme en reversible (avec trade-off espace/temps) | Prouve mathematiquement |
+| **Logique Lineaire** (Girard) | 1987 | Chaque hypothese utilisee exactement une fois — correspond aux types affines de Rust | Base theorique de QuantumCell |
+
+**Pourquoi Rust ?** Le systeme d'ownership de Rust (move semantics, borrow checker) est une implementation native de la logique lineaire. C'est le seul langage mainstream ou construire un SDK de calcul reversible est *naturel* plutot que force.
+
+---
 
 ## Performance
 
-Scalar Toffoli gate throughput on Apple Silicon:
+Throughput mesure des portes Toffoli (scalaire, Apple Silicon) :
 
-| Words | Bits | Time | Throughput |
-|-------|------|------|-----------|
-| 1 | 64 | 74 ns | ~860M gates/sec |
-| 1024 | 65,536 | 700 ns | ~93B bit-ops/sec |
+| Mots (u64) | Bits | Temps | Throughput |
+|------------|------|-------|-----------|
+| 1 | 64 | 74 ns | ~860M portes/sec |
+| 16 | 1,024 | 84 ns | ~12B bit-ops/sec |
+| 256 | 16,384 | 239 ns | ~68B bit-ops/sec |
+| 1,024 | 65,536 | 700 ns | **~93B bit-ops/sec** |
 
-Run benchmarks: `cargo bench -p rewind-gates`
-
-## Architecture
-
-```
-rewind (facade) ──► rewind-core (QuantumCell, ReversibleOp, Engine)
-                ──► rewind-gates (Toffoli, CNOT, Pauli-X) ──► rewind-core
-                ──► rewind-dsl (#[reversible] macro)
-rewind-gc ──────────► rewind-core
-rewind-bennett ─────► rewind-core
+```bash
+# Lancer les benchmarks
+cargo bench -p rewind-gates
 ```
 
-Key decisions:
-- **Arena allocator** with typed indices (not `Pin<Box<T>>`)
-- **Match dispatch** for VM opcodes (quasi-optimal on modern CPUs)
-- **SoA BitPlane** layout for SIMD-friendly gate operations
-- **Linear types** via `Drop` + panic + `ManuallyDrop`
-
-See [project-context.md](project-context.md) for full architectural details.
-
-## Theoretical Foundation
-
-Rewind is built on proven physics and computer science:
-
-- **Landauer's Principle** (1961) — Erasing a bit dissipates kT·ln(2) energy
-- **Toffoli Gate** (1980) — Universal reversible gate (CCNOT)
-- **Bennett's Algorithm** (1973) — Any computation can be made reversible
-- **Girard's Linear Logic** (1987) — Each resource used exactly once
-
-Rust's ownership system (affine types) is a native implementation of linear logic — making it the ideal language for reversible computing.
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-Every `ReversibleOp` implementation **must** have a proptest verifying `undo(execute(x)) == x`.
-
-## License
-
-Licensed under either of
-
-- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE))
-- MIT License ([LICENSE-MIT](LICENSE-MIT))
-
-at your option.
+> Les optimisations SIMD (AVX2/AVX-512/NEON) sont prevues pour la v0.2 et multiplieront ces chiffres par 4-8x.
 
 ---
+
+## Crates
+
+| Crate | Description | Fichiers cles |
+|-------|-------------|---------------|
+| [`rewind`](rewind/) | Facade — re-exporte tout + prelude | `lib.rs` |
+| [`rewind-core`](rewind-core/) | Types fondamentaux + moteur d'execution | `cell.rs`, `engine.rs`, `runtime.rs`, `traits.rs`, `bitplane.rs` |
+| [`rewind-gates`](rewind-gates/) | Portes logiques + circuits | `scalar.rs`, `circuits.rs` |
+| [`rewind-gc`](rewind-gc/) | Garbage-Free Collector | `collector.rs`, `stack.rs`, `budget.rs` |
+| [`rewind-dsl`](rewind-dsl/) | Macro `#[reversible]` | `lib.rs`, `validate.rs` |
+| [`rewind-bennett`](rewind-bennett/) | Algorithme de Bennett | `graph.rs`, `pebbling.rs`, `executor.rs` |
+| [`rewind-playground`](rewind-playground/) | Playground WASM (prevu) | — |
+
+---
+
+## Guide du Contributeur
+
+```bash
+# Cloner et compiler
+git clone https://github.com/CTC-Kernel/aion-os.git
+cd aion-os
+cargo build
+
+# Lancer les tests (134 tests doivent passer)
+cargo test
+
+# Verifier le style
+cargo clippy -- -D warnings
+cargo fmt --all -- --check
+
+# Generer la documentation
+cargo doc --no-deps --open
+
+# Benchmarks
+cargo bench -p rewind-gates
+```
+
+### Regles de Contribution
+
+1. **Toute implementation de `ReversibleOp` DOIT avoir un test proptest** verifiant `undo(execute(x)) == x`
+2. **Zero `unsafe` dans le code utilisateur** sans justification ecrite
+3. **Tous les items publics** doivent avoir un doc comment avec exemple
+4. **`cargo clippy -- -D warnings`** doit passer sans erreur
+5. **`cargo fmt`** doit etre applique avant tout commit
+
+Voir [CONTRIBUTING.md](CONTRIBUTING.md) pour plus de details.
+
+---
+
+## Feuille de Route
+
+```mermaid
+gantt
+    title Feuille de Route Rewind
+    dateFormat YYYY-MM
+    axisFormat %Y-%m
+
+    section v0.1 - MVP
+    QuantumCell + Portes          :done, 2026-04, 2026-04
+    Engine forward/backward       :done, 2026-04, 2026-04
+    #[reversible] macro           :done, 2026-04, 2026-04
+    Garbage-Free Collector        :done, 2026-04, 2026-04
+    Bennett algorithme            :done, 2026-04, 2026-04
+
+    section v0.2 - Performance
+    Portes SIMD (AVX2/NEON)       :2026-05, 2026-06
+    Benchmarks publies            :done, 2026-04, 2026-04
+    Playground WASM               :2026-06, 2026-07
+
+    section v0.3 - DSL
+    #[reversible] etendu          :2026-07, 2026-08
+    Generation code inverse       :2026-07, 2026-09
+    Boucles/conditionnels         :2026-08, 2026-09
+
+    section v0.4 - Bennett
+    Bennett automatique complet   :2026-09, 2026-11
+    Optimisation SQUARE           :2026-10, 2026-12
+
+    section v1.0 - Release
+    API stabilisee                :2027-01, 2027-03
+    Publication crates.io         :2027-01, 2027-02
+    Bindings C/Python/WASM        :2027-02, 2027-06
+```
+
+---
+
+## Contexte et Motivation
+
+### Le Probleme : L'Informatique Detruit de l'Information
+
+Chaque `x = y` ecrase l'ancienne valeur de x. Chaque garbage collection efface des etats intermediaires. Cette destruction a un cout physique — le **principe de Landauer** prouve que chaque bit efface dissipe un minimum de **kT·ln(2) de chaleur** (verifie experimentalement).
+
+Les data centers consomment deja **1.5% de l'electricite mondiale** et ce chiffre devrait tripler d'ici 2030 avec l'essor de l'IA. Les optimisations actuelles (quantization, MoE) sont incrementales — pas un changement de paradigme.
+
+### La Solution : Le Calcul Reversible
+
+Si chaque operation `f(x) = y` possede un inverse `f⁻¹(y) = x`, aucune information n'est perdue, et theoriquement, aucune chaleur n'est dissipee. C'est le **calcul reversible** — et c'est prouve possible par Bennett (1973).
+
+**Vaire Computing** (UK) a demontre le premier chip CMOS reversible en 2025 avec 50% de recuperation d'energie. Le potentiel theorique est de **4,000x** d'efficacite energetique.
+
+### Pourquoi Rewind Existe
+
+Il y a un **vide strategique** entre la theorie academique (Janus, RevKit) et le hardware emergent (Vaire). **Personne ne construit la couche logicielle.** Rewind comble ce vide — un SDK moderne en Rust pour le calcul reversible, utilisable aujourd'hui comme debugger temporel, demain comme runtime pour chips reversibles.
+
+---
+
+## Licence
+
+Double licence au choix :
+
+- [Apache License 2.0](LICENSE-APACHE)
+- [MIT License](LICENSE-MIT)
+
+---
+
+*Construit avec la conviction que l'information ne devrait jamais etre detruite.*
 
 *Built with the conviction that information should never be destroyed.*
