@@ -1,6 +1,15 @@
+# Build artifacts
 /target
 **/target
+
+# Editor
 *.swp
 *.swo
 *~
 .DS_Store
+
+# BMad internal tooling (not part of the public project)
+_bmad/
+_bmad-output/
+.claude/
+CLAUDE.md
