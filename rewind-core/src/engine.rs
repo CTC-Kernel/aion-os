@@ -137,6 +137,16 @@ pub enum Op {
     Toffoli { c1: usize, c2: usize, target: usize },
 }
 
+impl std::fmt::Display for Op {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Op::Not(i) => write!(f, "NOT R{i}"),
+            Op::Cnot { control, target } => write!(f, "CNOT R{control}->R{target}"),
+            Op::Toffoli { c1, c2, target } => write!(f, "TOFF R{c1},R{c2}->R{target}"),
+        }
+    }
+}
+
 impl ReversibleProgram {
     /// Creates a new program from a list of operations.
     pub fn new(ops: Vec<Op>) -> Self {

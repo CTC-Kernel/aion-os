@@ -35,11 +35,7 @@ pub fn generate_reverse(func: &ItemFn) -> TokenStream {
 /// - `*x ^= expr` stays `*x ^= expr` (XOR is self-inverse)
 /// - Other statements are kept as-is but in reverse order
 fn reverse_statements(stmts: &[Stmt]) -> Vec<Stmt> {
-    stmts
-        .iter()
-        .rev()
-        .map(invert_statement)
-        .collect()
+    stmts.iter().rev().map(invert_statement).collect()
 }
 
 fn invert_statement(stmt: &Stmt) -> Stmt {

@@ -598,6 +598,7 @@ dependencies = [
  "rewind-core",
  "rewind-dsl",
  "rewind-gates",
+ "rewind-gc",
 ]
 
 [[package]]
