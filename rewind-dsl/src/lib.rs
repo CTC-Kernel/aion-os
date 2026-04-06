@@ -3,31 +3,24 @@
 //! Procedural macro `#[reversible]` for the Rewind SDK.
 //!
 //! Annotate functions with `#[reversible]` to enable compile-time verification
-//! that all operations are reversible. The macro rejects destructive assignments,
-//! `mem::forget`, I/O operations, and generates a companion reverse function.
+//! and automatic generation of a companion `_reverse` function.
 //!
-//! ## Allowed Operations
+//! ## Generated Code
 //!
-//! - `*x += expr` / `*x -= expr` — additive (inverse: subtract/add)
-//! - `*x ^= expr` — XOR (self-inverse)
-//! - `std::mem::swap(a, b)` — swap (self-inverse)
-//! - `let` bindings (immutable only)
-//! - Function calls (not validated yet)
-//!
-//! ## Rejected Operations
-//!
-//! - `*x = expr` — destructive assignment (overwrites information)
-//! - `std::mem::forget` / `std::mem::drop` — destroys information
-//! - `println!` / `eprintln!` — irreversible I/O side effects
+//! For `#[reversible] fn foo(...)`, generates both `foo` and `foo_reverse`.
+//! The reverse function applies inverted operations in reverse order:
+//! - `+=` becomes `-=`
+//! - `-=` becomes `+=`
+//! - `^=` stays `^=` (self-inverse)
 
 use proc_macro::TokenStream;
 
+mod codegen;
 mod validate;
 
 /// Marks a function as reversible with compile-time verification.
 ///
-/// The macro walks the function body and rejects any operation that
-/// would destroy information (destructive assignment, mem::forget, I/O).
+/// Validates the function body and generates a `_reverse` companion.
 ///
 /// # Examples
 ///
@@ -39,6 +32,7 @@ mod validate;
 ///     *x += val;
 ///     *y ^= *x;
 /// }
+/// // Auto-generates: fn add_xor_reverse(x, y, val) { *y ^= *x; *x -= val; }
 /// ```
 #[proc_macro_attribute]
 pub fn reversible(_attr: TokenStream, item: TokenStream) -> TokenStream {
@@ -49,12 +43,14 @@ pub fn reversible(_attr: TokenStream, item: TokenStream) -> TokenStream {
         for err in errors {
             output.extend(TokenStream::from(err.to_compile_error()));
         }
-        // Also emit the original function so other errors can still be caught
         output.extend(TokenStream::from(quote::quote! { #input }));
         return output;
     }
 
-    // Function passes validation — emit it unchanged
-    // (Future: also generate a _reverse companion function)
-    TokenStream::from(quote::quote! { #input })
+    let reverse_fn = codegen::generate_reverse(&input);
+
+    TokenStream::from(quote::quote! {
+        #input
+        #reverse_fn
+    })
 }
